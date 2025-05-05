@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Balloon Pop Game (Final Fix!)</title>
+  <title>Balloon Pop Game (with Features)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <style>
     body {
@@ -11,7 +11,7 @@
     .balloon-container {
       position: relative;
       width: 100%;
-      height: 80vh;
+      height: 100vh;
       overflow: hidden;
     }
     .balloon-wrapper {
@@ -19,11 +19,13 @@
       width: 100px;
       height: 150px;
       cursor: pointer;
-      animation: float 10s infinite linear;
+      animation: float 10s linear infinite;
+      top: 100vh; /* Start fully at the bottom */
     }
     .balloon {
       width: 100%;
       height: auto;
+      transition: all 0.3s;
     }
     .word {
       position: absolute;
@@ -39,16 +41,14 @@
       max-width: 90px;
     }
     @keyframes float {
-      from { transform: translateY(100vh); }
-      to { transform: translateY(-150px); }
+      from { transform: translateY(0); }
+      to { transform: translateY(-120vh); }
     }
   </style>
 </head>
 <body>
   <h1>Click a Balloon to Reveal the Word!</h1>
-  <div class="balloon-container" id="balloonContainer">
-    <!-- Balloons will load here -->
-  </div>
+  <div class="balloon-container" id="balloonContainer"></div>
 
   <script>
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT6Gp6N_CTpuoBl0rKW1sLSJSy7PtNqZ9QW3kOBHEjl4LbqdDY45qXQtIFCPX4GZsK-BzHCr_wW_YbO/pub?output=csv';
@@ -99,15 +99,44 @@
 
         const container = $('#balloonContainer');
 
+        // Create 10 real balloons
         for (let i = 1; i <= 10; i++) {
           const word = latest[i] || `Word ${i}`;
-          console.log(`Balloon ${i}: word: ${word}`);
-
           const randomLeft = Math.random() * (window.innerWidth - 120);
+          const hueRotate = Math.floor(Math.random() * 360); // Random color
+          const speed = 8 + Math.random() * 5; // Random speed between 8s and 13s
+          const delay = Math.random() * 5; // Random delay
+
           const balloonHTML = `
-            <div class="balloon-wrapper" style="left: ${randomLeft}px; animation-delay: ${Math.random() * 5}s;" onclick="popBalloon(this)">
-              <img src="https://adsco.com/cdn/shop/files/17-Blue-Balloons-72Bg-1703-GR.png" class="balloon">
+            <div class="balloon-wrapper real" 
+                 style="left: ${randomLeft}px; 
+                        animation-duration: ${speed}s; 
+                        animation-delay: ${delay}s;">
+              <img src="https://adsco.com/cdn/shop/files/17-Blue-Balloons-72Bg-1703-GR.png" 
+                   class="balloon" 
+                   style="filter: hue-rotate(${hueRotate}deg);">
               <div class="word">${word}</div>
+            </div>
+          `;
+          container.append(balloonHTML);
+        }
+
+        // Create 10 fake balloons (no word)
+        for (let i = 0; i < 10; i++) {
+          const randomLeft = Math.random() * (window.innerWidth - 120);
+          const hueRotate = Math.floor(Math.random() * 360);
+          const speed = 8 + Math.random() * 5;
+          const delay = Math.random() * 5;
+
+          const balloonHTML = `
+            <div class="balloon-wrapper fake" 
+                 style="left: ${randomLeft}px; 
+                        animation-duration: ${speed}s; 
+                        animation-delay: ${delay}s;" 
+                 onclick="popFakeBalloon(this)">
+              <img src="https://adsco.com/cdn/shop/files/17-Blue-Balloons-72Bg-1703-GR.png" 
+                   class="balloon" 
+                   style="filter: hue-rotate(${hueRotate}deg);">
             </div>
           `;
           container.append(balloonHTML);
@@ -121,8 +150,18 @@
     function popBalloon(el) {
       $(el).find('.balloon').hide();
       $(el).find('.word').show();
-      $(el).css('animation-play-state', 'paused');
+      $(el).css('animation-play-state', 'paused'); // stop moving
     }
+
+    function popFakeBalloon(el) {
+      // You can make it disappear or shake here
+      $(el).fadeOut(300); // just disappears for now
+    }
+
+    // Attach pop handler to real balloons (after they're loaded)
+    $(document).on('click', '.real', function() {
+      popBalloon(this);
+    });
   </script>
 </body>
 </html>
