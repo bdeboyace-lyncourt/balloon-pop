@@ -35,6 +35,8 @@
       font-weight: bold;
       color: darkblue;
       text-align: center;
+      word-wrap: break-word;
+      max-width: 90px;
     }
   </style>
 </head>
@@ -56,12 +58,11 @@
     }
 
     function showInfo(data) {
-      var latest = data[data.length - 1]; // Get the most recent response
+      var latest = data[data.length - 1]; // Get the latest form submission
       var container = $('#balloonContainer');
       for (var i = 1; i <= 10; i++) {
-        // Google usually labels duplicate questions like: Add a word, Add a word 2, Add a word 3, etc.
-        var key = (i === 1) ? 'Add a word' : 'Add a word ' + i;
-        var word = latest[key] || 'Word ' + i;  // Fallback if blank
+        var key = i + ' - Add a word';
+        var word = latest[key] || 'Word ' + i;  // fallback if blank
         var balloonHTML = `
           <div class="balloon-wrapper" onclick="popBalloon(this)">
             <img src="https://i.ibb.co/X5JzfwS/balloon.png" class="balloon">
