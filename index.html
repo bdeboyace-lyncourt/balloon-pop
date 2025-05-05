@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Balloon Pop Game (Duplicate Headers Fix)</title>
+  <title>Balloon Pop Game (Final Fix!)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <style>
     body {
@@ -53,7 +53,7 @@
   <script>
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT6Gp6N_CTpuoBl0rKW1sLSJSy7PtNqZ9QW3kOBHEjl4LbqdDY45qXQtIFCPX4GZsK-BzHCr_wW_YbO/pub?output=csv';
 
-    function parseCSVWithDuplicateHeaders(text) {
+    function parseCSV(text) {
       const rows = text.trim().split('\n').map(row => {
         const re = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
         return [...row.matchAll(re)].map(m => m[0].replace(/^"|"$/g, '').trim());
@@ -86,7 +86,7 @@
       .then(response => response.text())
       .then(text => {
         console.log('CSV raw text:', text);
-        const data = parseCSVWithDuplicateHeaders(text);
+        const data = parseCSV(text);
         console.log('Parsed data:', data);
 
         if (data.length === 0) {
@@ -100,12 +100,8 @@
         const container = $('#balloonContainer');
 
         for (let i = 1; i <= 10; i++) {
-          const key = `Add a word ${i}`;
-          // Fallback: try 'Add a word' for the first one
-          const altKey = (i === 1) ? 'Add a word' : `Add a word ${i}`;
-          const possibleKey = Object.keys(latest).find(h => h.endsWith(altKey));
-          const word = (possibleKey && latest[possibleKey]) ? latest[possibleKey] : `Word ${i}`;
-          console.log(`Balloon ${i}: using key [${possibleKey}] -> word: ${word}`);
+          const word = latest[i] || `Word ${i}`;
+          console.log(`Balloon ${i}: word: ${word}`);
 
           const randomLeft = Math.random() * (window.innerWidth - 120);
           const balloonHTML = `
