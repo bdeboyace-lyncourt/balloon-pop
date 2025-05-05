@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Balloon Pop Game (Improved)</title>
+  <title>Balloon Pop Game (Final Polish)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <style>
     body {
@@ -94,9 +94,10 @@
         numbers.sort(() => Math.random() - 0.5);
 
         numbers.forEach((i, idx) => {
-          const key = `${i} - Add a word`;
-          const word = latest[key] || `Word ${i}`;
-          console.log(`Balloon ${i}: ${word}`);
+          // Dynamically find the matching key
+          const possibleKey = Object.keys(latest).find(key => key.trim().startsWith(i + ' - Add a word'));
+          const word = (possibleKey && latest[possibleKey]) ? latest[possibleKey] : `Word ${i}`;
+          console.log(`Balloon ${i}: using key [${possibleKey}] -> word: ${word}`);
 
           // Random position across the width
           const randomLeft = Math.random() * (window.innerWidth - 120);
