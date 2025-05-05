@@ -34,6 +34,7 @@
       font-size: 18px;
       font-weight: bold;
       color: darkblue;
+      text-align: center;
     }
   </style>
 </head>
@@ -44,7 +45,7 @@
   </div>
 
   <script>
-    var publicSpreadsheetUrl = 'https://docs.google.com/spreadsheets/d/18z9QorzeJUiUnJF3e0cSVkY1qeXZIr6ZSC3HA0hYxb0/pubhtml';
+    var publicSpreadsheetUrl = 'https://docs.google.com/spreadsheets/d/1Lh3ddm_r706Gc1rVXvwVeesC_gm2bZ1Da0SxQ8jBjCY/pubhtml';
 
     function init() {
       Tabletop.init({
@@ -55,13 +56,12 @@
     }
 
     function showInfo(data) {
-      // Get the last response (latest submission)
-      var latest = data[data.length - 1];
-
-      // Build 10 balloons based on questions 1–10
+      var latest = data[data.length - 1]; // Get the most recent response
       var container = $('#balloonContainer');
       for (var i = 1; i <= 10; i++) {
-        var word = latest['Your Question ' + i] || 'Word ' + i;  // Adjust field names if needed
+        // Google usually labels duplicate questions like: Add a word, Add a word 2, Add a word 3, etc.
+        var key = (i === 1) ? 'Add a word' : 'Add a word ' + i;
+        var word = latest[key] || 'Word ' + i;  // Fallback if blank
         var balloonHTML = `
           <div class="balloon-wrapper" onclick="popBalloon(this)">
             <img src="https://i.ibb.co/X5JzfwS/balloon.png" class="balloon">
