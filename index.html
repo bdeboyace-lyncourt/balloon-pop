@@ -1,12 +1,12 @@
 <html>
 <head>
-  <title>Balloon Pop Game (Final Polish)</title>
+  <title>Balloon Pop Game (Duplicate Headers Fix)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      overflow: hidden; /* For moving balloons */
+      overflow: hidden;
     }
     .balloon-container {
       position: relative;
@@ -53,14 +53,24 @@
   <script>
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT6Gp6N_CTpuoBl0rKW1sLSJSy7PtNqZ9QW3kOBHEjl4LbqdDY45qXQtIFCPX4GZsK-BzHCr_wW_YbO/pub?output=csv';
 
-    // Improved CSV parser for commas-in-cells (basic)
-    function parseCSV(text) {
+    function parseCSVWithDuplicateHeaders(text) {
       const rows = text.trim().split('\n').map(row => {
-        // Split respecting quotes
         const re = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
         return [...row.matchAll(re)].map(m => m[0].replace(/^"|"$/g, '').trim());
       });
-      const headers = rows[0].map(h => h.trim());
+
+      let headers = rows[0].map(h => h.trim());
+      const headerCount = {};
+      headers = headers.map(header => {
+        if (!headerCount[header]) {
+          headerCount[header] = 1;
+          return header;
+        } else {
+          headerCount[header]++;
+          return `${header} ${headerCount[header]}`;
+        }
+      });
+
       const data = rows.slice(1).map(row => {
         let obj = {};
         row.forEach((val, idx) => {
@@ -68,7 +78,7 @@
         });
         return obj;
       });
-      console.log('Headers:', headers);
+      console.log('Headers after deduplication:', headers);
       return data;
     }
 
@@ -76,7 +86,7 @@
       .then(response => response.text())
       .then(text => {
         console.log('CSV raw text:', text);
-        const data = parseCSV(text);
+        const data = parseCSVWithDuplicateHeaders(text);
         console.log('Parsed data:', data);
 
         if (data.length === 0) {
@@ -89,19 +99,15 @@
 
         const container = $('#balloonContainer');
 
-        // Shuffle order for random display
-        const numbers = [...Array(10).keys()].map(n => n + 1);
-        numbers.sort(() => Math.random() - 0.5);
-
-        numbers.forEach((i, idx) => {
-          // Dynamically find the matching key
-          const possibleKey = Object.keys(latest).find(key => key.trim().startsWith(i + ' - Add a word'));
+        for (let i = 1; i <= 10; i++) {
+          const key = `Add a word ${i}`;
+          // Fallback: try 'Add a word' for the first one
+          const altKey = (i === 1) ? 'Add a word' : `Add a word ${i}`;
+          const possibleKey = Object.keys(latest).find(h => h.endsWith(altKey));
           const word = (possibleKey && latest[possibleKey]) ? latest[possibleKey] : `Word ${i}`;
           console.log(`Balloon ${i}: using key [${possibleKey}] -> word: ${word}`);
 
-          // Random position across the width
           const randomLeft = Math.random() * (window.innerWidth - 120);
-
           const balloonHTML = `
             <div class="balloon-wrapper" style="left: ${randomLeft}px; animation-delay: ${Math.random() * 5}s;" onclick="popBalloon(this)">
               <img src="https://adsco.com/cdn/shop/files/17-Blue-Balloons-72Bg-1703-GR.png" class="balloon">
@@ -109,7 +115,7 @@
             </div>
           `;
           container.append(balloonHTML);
-        });
+        }
       })
       .catch(error => {
         console.error('Error fetching CSV:', error);
@@ -119,7 +125,7 @@
     function popBalloon(el) {
       $(el).find('.balloon').hide();
       $(el).find('.word').show();
-      $(el).css('animation-play-state', 'paused'); // stop moving after pop
+      $(el).css('animation-play-state', 'paused');
     }
   </script>
 </body>
