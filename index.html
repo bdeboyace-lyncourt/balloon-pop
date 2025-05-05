@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Balloon Pop Game</title>
+  <title>Balloon Pop Game (Debug)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tabletop@1.5.4/src/tabletop.min.js"></script>
   <style>
@@ -50,19 +50,33 @@
     var publicSpreadsheetUrl = '1Lh3ddm_r706Gc1rVXvwVeesC_gm2bZ1Da0SxQ8jBjCY';
 
     function init() {
+      console.log("Initializing Tabletop...");
       Tabletop.init({
         key: publicSpreadsheetUrl,
         callback: showInfo,
-        simpleSheet: true
+        simpleSheet: true,
+        error: function(err) {
+          console.error("Tabletop error:", err);
+        }
       });
     }
 
     function showInfo(data) {
+      console.log("Data fetched:", data);
+      if (!data || data.length === 0) {
+        console.warn("No data found.");
+        $('#balloonContainer').html('<p>No data found. Please check your Sheet and ensure it is published and has data.</p>');
+        return;
+      }
+
       var latest = data[data.length - 1]; // Get the latest form submission
+      console.log("Latest row:", latest);
+
       var container = $('#balloonContainer');
       for (var i = 1; i <= 10; i++) {
         var key = i + ' - Add a word';
         var word = latest[key] || 'Word ' + i;  // fallback if blank
+        console.log("Balloon", i, "key:", key, "word:", word);
         var balloonHTML = `
           <div class="balloon-wrapper" onclick="popBalloon(this)">
             <img src="https://i.ibb.co/X5JzfwS/balloon.png" class="balloon">
