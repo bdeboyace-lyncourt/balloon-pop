@@ -1,24 +1,25 @@
 <html>
 <head>
-  <title>Balloon Pop Game (Fetch version)</title>
+  <title>Balloon Pop Game (Improved)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
+      overflow: hidden; /* For moving balloons */
     }
     .balloon-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 30px;
+      position: relative;
+      width: 100%;
+      height: 80vh;
+      overflow: hidden;
     }
     .balloon-wrapper {
-      position: relative;
+      position: absolute;
       width: 100px;
       height: 150px;
       cursor: pointer;
+      animation: float 10s infinite linear;
     }
     .balloon {
       width: 100%;
@@ -37,6 +38,10 @@
       word-wrap: break-word;
       max-width: 90px;
     }
+    @keyframes float {
+      from { transform: translateY(100vh); }
+      to { transform: translateY(-150px); }
+    }
   </style>
 </head>
 <body>
@@ -48,17 +53,22 @@
   <script>
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT6Gp6N_CTpuoBl0rKW1sLSJSy7PtNqZ9QW3kOBHEjl4LbqdDY45qXQtIFCPX4GZsK-BzHCr_wW_YbO/pub?output=csv';
 
-    // Simple CSV parser
+    // Improved CSV parser for commas-in-cells (basic)
     function parseCSV(text) {
-      const rows = text.trim().split('\n').map(row => row.split(','));
-      const headers = rows[0];
+      const rows = text.trim().split('\n').map(row => {
+        // Split respecting quotes
+        const re = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
+        return [...row.matchAll(re)].map(m => m[0].replace(/^"|"$/g, '').trim());
+      });
+      const headers = rows[0].map(h => h.trim());
       const data = rows.slice(1).map(row => {
         let obj = {};
         row.forEach((val, idx) => {
-          obj[headers[idx]] = val;
+          obj[headers[idx]] = val.trim();
         });
         return obj;
       });
+      console.log('Headers:', headers);
       return data;
     }
 
@@ -78,18 +88,27 @@
         console.log('Latest row:', latest);
 
         const container = $('#balloonContainer');
-        for (let i = 1; i <= 10; i++) {
+
+        // Shuffle order for random display
+        const numbers = [...Array(10).keys()].map(n => n + 1);
+        numbers.sort(() => Math.random() - 0.5);
+
+        numbers.forEach((i, idx) => {
           const key = `${i} - Add a word`;
           const word = latest[key] || `Word ${i}`;
           console.log(`Balloon ${i}: ${word}`);
+
+          // Random position across the width
+          const randomLeft = Math.random() * (window.innerWidth - 120);
+
           const balloonHTML = `
-            <div class="balloon-wrapper" onclick="popBalloon(this)">
-              <img src="https://i.ibb.co/X5JzfwS/balloon.png" class="balloon">
+            <div class="balloon-wrapper" style="left: ${randomLeft}px; animation-delay: ${Math.random() * 5}s;" onclick="popBalloon(this)">
+              <img src="https://adsco.com/cdn/shop/files/17-Blue-Balloons-72Bg-1703-GR.png" class="balloon">
               <div class="word">${word}</div>
             </div>
           `;
           container.append(balloonHTML);
-        }
+        });
       })
       .catch(error => {
         console.error('Error fetching CSV:', error);
@@ -99,6 +118,7 @@
     function popBalloon(el) {
       $(el).find('.balloon').hide();
       $(el).find('.word').show();
+      $(el).css('animation-play-state', 'paused'); // stop moving after pop
     }
   </script>
 </body>
