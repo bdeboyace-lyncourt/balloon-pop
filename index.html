@@ -1,9 +1,7 @@
 <html>
 <head>
-  <title>Balloon Pop Game (Debug Fixed)</title>
+  <title>Balloon Pop Game (Fetch version)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <!-- FIXED: Using working Tabletop.js CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.5.1/tabletop.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -48,52 +46,60 @@
   </div>
 
   <script>
-    var publicSpreadsheetUrl = '1Lh3ddm_r706Gc1rVXvwVeesC_gm2bZ1Da0SxQ8jBjCY';
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT6Gp6N_CTpuoBl0rKW1sLSJSy7PtNqZ9QW3kOBHEjl4LbqdDY45qXQtIFCPX4GZsK-BzHCr_wW_YbO/pub?output=csv';
 
-    function init() {
-      console.log("Initializing Tabletop...");
-      Tabletop.init({
-        key: publicSpreadsheetUrl,
-        callback: showInfo,
-        simpleSheet: true,
-        error: function(err) {
-          console.error("Tabletop error:", err);
-        }
+    // Simple CSV parser
+    function parseCSV(text) {
+      const rows = text.trim().split('\n').map(row => row.split(','));
+      const headers = rows[0];
+      const data = rows.slice(1).map(row => {
+        let obj = {};
+        row.forEach((val, idx) => {
+          obj[headers[idx]] = val;
+        });
+        return obj;
       });
+      return data;
     }
 
-    function showInfo(data) {
-      console.log("Data fetched:", data);
-      if (!data || data.length === 0) {
-        console.warn("No data found.");
-        $('#balloonContainer').html('<p>No data found. Please check your Sheet and ensure it is published and has data.</p>');
-        return;
-      }
+    fetch(csvUrl)
+      .then(response => response.text())
+      .then(text => {
+        console.log('CSV raw text:', text);
+        const data = parseCSV(text);
+        console.log('Parsed data:', data);
 
-      var latest = data[data.length - 1]; // Get the latest form submission
-      console.log("Latest row:", latest);
+        if (data.length === 0) {
+          $('#balloonContainer').html('<p>No data found.</p>');
+          return;
+        }
 
-      var container = $('#balloonContainer');
-      for (var i = 1; i <= 10; i++) {
-        var key = i + ' - Add a word';
-        var word = latest[key] || 'Word ' + i;  // fallback if blank
-        console.log("Balloon", i, "key:", key, "word:", word);
-        var balloonHTML = `
-          <div class="balloon-wrapper" onclick="popBalloon(this)">
-            <img src="https://i.ibb.co/X5JzfwS/balloon.png" class="balloon">
-            <div class="word">${word}</div>
-          </div>
-        `;
-        container.append(balloonHTML);
-      }
-    }
+        const latest = data[data.length - 1];
+        console.log('Latest row:', latest);
+
+        const container = $('#balloonContainer');
+        for (let i = 1; i <= 10; i++) {
+          const key = `${i} - Add a word`;
+          const word = latest[key] || `Word ${i}`;
+          console.log(`Balloon ${i}: ${word}`);
+          const balloonHTML = `
+            <div class="balloon-wrapper" onclick="popBalloon(this)">
+              <img src="https://i.ibb.co/X5JzfwS/balloon.png" class="balloon">
+              <div class="word">${word}</div>
+            </div>
+          `;
+          container.append(balloonHTML);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching CSV:', error);
+        $('#balloonContainer').html('<p>Error loading data.</p>');
+      });
 
     function popBalloon(el) {
       $(el).find('.balloon').hide();
       $(el).find('.word').show();
     }
-
-    window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
